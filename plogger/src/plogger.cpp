@@ -46,6 +46,10 @@ int Logger::logHeader(LogLevel level, const char *caller) {
 }
 
 int Logger::log(LogLevel level, const char *message, const char *caller) {
+  if (level < log_level_) {
+    return 0;
+  }
+
   int printed = 0;
   printed += logHeader(level, caller);
   printed += stream_->println(message);
