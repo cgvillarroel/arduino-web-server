@@ -20,36 +20,41 @@ void web_reply(void) {
   (void)logger.debug(F(""));
 }
 
-bool web_processRequestLine(String &current_line) {
-  if (!client.available()) {
-    return false;
-  }
+bool web_processRequest() {
+  (void)logger.debug(F("Request:"));
+  String current_line = F("");
 
-  char c = client.read();
-
-  if (c == '\n') {
-    if (current_line.length() > 0) {
-      (void)logger.debug(current_line);
-      current_line = F("");
-    } else {
-      web_reply();
-      return true;
+  while (client.connected()) {
+    if (!client.available()) {
+      break;
     }
-  } else if (c != '\r') {
-    current_line += c;
-  }
 
-  if (current_line.endsWith("GET /H")) {
-    (void)logger.info(F("Turning on LED."));
-    digitalWrite(LED_PIN, HIGH);
-  }
+    char c = client.read();
 
-  if (current_line.endsWith("GET /L")) {
-    (void)logger.info(F("Turning off LED."));
-    digitalWrite(LED_PIN, LOW);
-  }
+    if (c == '\n') {
+      if (current_line.length() > 0) {
+        // if the current line has stuff, reset the line and keep going
+        (void)logger.debug(current_line);
+        current_line = F("");
+      } else {
+        // if there are 2 new lines in a row, it's the end of the request
+        web_reply();
+        break;
+      }
+    } else if (c != '\r') {
+      current_line += c;
+    }
 
-  return false;
+    if (current_line.endsWith("GET /H")) {
+      (void)logger.info(F("Turning on LED."));
+      digitalWrite(LED_PIN, HIGH);
+    }
+
+    if (current_line.endsWith("GET /L")) {
+      (void)logger.info(F("Turning off LED."));
+      digitalWrite(LED_PIN, LOW);
+    }
+  }
 }
 
 void web_run(void) {
@@ -61,12 +66,7 @@ void web_run(void) {
   if (client.connected()) {
     (void)logger.info(F("Client connected."));
     (void)logger.info(F("Receiving request."));
-    (void)logger.debug(F("Request:"));
-  }
-  while (client.connected()) {
-    if (web_processRequestLine(current_line)) {
-      break;
-    }
+    web_processRequest();
   }
 
   client.stop();
