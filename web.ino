@@ -1,28 +1,35 @@
-void web_reply(void) {
-  (void)logger.info(F("Responding to request."));
-  (void)client.println(F("HTTP/1.1 200 OK"));
-  (void)client.println(F("Content-type:text/html"));
-  (void)client.println();
-
-  // html buttons
-  (void)client.println(F("Click <a href=\"/H\">here</a> turn the LED on<br>"));
-  (void)client.println(F("Click <a href=\"/L\">here</a> turn the LED off<br><br>"));
-  (void)client.println();
-
-  (void)logger.debug(F("Reply:"));
-  (void)logger.debug(F("HTTP/1.1 200 OK"));
-  (void)logger.debug(F("Content-type:text/html"));
-  (void)logger.debug(F(""));
-
-  // html buttons
-  (void)logger.debug(F("Click <a href=\"/H\">here</a> turn the LED on<br>"));
-  (void)logger.debug(F("Click <a href=\"/L\">here</a> turn the LED off<br><br>"));
-  (void)logger.debug(F(""));
+void web_logAndSend(const String &message) {
+  (void)logger.debug(message);
+  (void)client.print(message);
 }
 
-bool web_processRequest() {
-  (void)logger.debug(F("Request:"));
+void web_logAndSendLine(const String &message) {
+  (void)logger.debugLine(message);
+  (void)client.println(message);
+}
+
+void web_reply(void) {
+  (void)logger.info(F("Responding to request."));
+  (void)web_logAndSendLine(F("HTTP/1.1 200 OK"));
+  (void)web_logAndSendLine(F("Content-type:text/html"));
+  (void)web_logAndSendLine(F(""));
+
+  // html buttons
+  (void)web_logAndSendLine(
+      F("Click <a href=\"/A\">here</a> light up white<br>"));
+  (void)web_logAndSendLine(F("Click <a href=\"/O\">here</a> turn off LED<br>"));
+  (void)web_logAndSendLine(F("Click <a href=\"/R\">here</a> light up red<br>"));
+  (void)web_logAndSendLine(
+      F("Click <a href=\"/G\">here</a> light up green<br>"));
+  (void)web_logAndSendLine(
+      F("Click <a href=\"/B\">here</a> light up blue<br>"));
+  (void)web_logAndSendLine(F(""));
+}
+
+void web_processRequest() {
   String current_line = F("");
+
+  (void)logger.debug(F("Request:"));
 
   while (client.connected()) {
     if (!client.available()) {
@@ -39,20 +46,40 @@ bool web_processRequest() {
       } else {
         // if there are 2 new lines in a row, it's the end of the request
         web_reply();
-        break;
+        return;
       }
     } else if (c != '\r') {
       current_line += c;
     }
 
-    if (current_line.endsWith("GET /H")) {
-      (void)logger.info(F("Turning on LED."));
-      digitalWrite(LED_PIN, HIGH);
+    if (current_line.equals("GET /R")) {
+      analogWrite(RED_PIN, BRIGHTNESS);
+      analogWrite(GREEN_PIN, 0);
+      analogWrite(BLUE_PIN, 0);
     }
 
-    if (current_line.endsWith("GET /L")) {
-      (void)logger.info(F("Turning off LED."));
-      digitalWrite(LED_PIN, LOW);
+    if (current_line.equals("GET /G")) {
+      analogWrite(RED_PIN, 0);
+      analogWrite(GREEN_PIN, BRIGHTNESS);
+      analogWrite(BLUE_PIN, 0);
+    }
+
+    if (current_line.equals("GET /B")) {
+      analogWrite(RED_PIN, 0);
+      analogWrite(GREEN_PIN, 0);
+      analogWrite(BLUE_PIN, BRIGHTNESS);
+    }
+
+    if (current_line.equals("GET /A")) {
+      analogWrite(RED_PIN, BRIGHTNESS);
+      analogWrite(GREEN_PIN, BRIGHTNESS);
+      analogWrite(BLUE_PIN, BRIGHTNESS);
+    }
+
+    if (current_line.equals("GET /O")) {
+      analogWrite(RED_PIN, 0);
+      analogWrite(GREEN_PIN, 0);
+      analogWrite(BLUE_PIN, 0);
     }
   }
 }
