@@ -15,21 +15,23 @@ void web_reply(void) {
   (void)web_logAndSendLine(F(""));
 
   // html buttons
-  (void)web_logAndSendLine(
-      F("Click <a href=\"/A\">here</a> light up white<br>"));
-  (void)web_logAndSendLine(F("Click <a href=\"/O\">here</a> turn off LED<br>"));
-  (void)web_logAndSendLine(F("Click <a href=\"/R\">here</a> light up red<br>"));
-  (void)web_logAndSendLine(
-      F("Click <a href=\"/G\">here</a> light up green<br>"));
-  (void)web_logAndSendLine(
-      F("Click <a href=\"/B\">here</a> light up blue<br>"));
+  (void)web_logAndSendLine(F("Click <a href=\"/A\">here</a> to light up white"
+                             "<br>"));
+  (void)web_logAndSendLine(F("Click <a href=\"/O\">here</a> turn off LED"
+                             "<br>"));
+  (void)web_logAndSendLine(F("Click <a href=\"/R\">here</a> to light up red"
+                             "<br>"));
+  (void)web_logAndSendLine(F("Click <a href=\"/G\">here</a> to light up green"
+                             "<br>"));
+  (void)web_logAndSendLine(F("Click <a href=\"/B\">here</a> to light up blue"
+                             "<br>"));
   (void)web_logAndSendLine(F(""));
 }
 
 void web_processRequest() {
   String current_line = F("");
 
-  (void)logger.debug(F("Request:"));
+  (void)logger.debugLine(F("Request:"));
 
   while (client.connected()) {
     if (!client.available()) {
@@ -41,7 +43,7 @@ void web_processRequest() {
     if (c == '\n') {
       if (current_line.length() > 0) {
         // if the current line has stuff, reset the line and keep going
-        (void)logger.debug(current_line);
+        (void)logger.debugLine(current_line);
         current_line = F("");
       } else {
         // if there are 2 new lines in a row, it's the end of the request
@@ -91,11 +93,11 @@ void web_run(void) {
 
   String current_line = F("");
   if (client.connected()) {
-    (void)logger.info(F("Client connected."));
-    (void)logger.info(F("Receiving request."));
+    (void)logger.infoLine(F("Client connected."));
+    (void)logger.infoLine(F("Receiving request."));
     web_processRequest();
   }
 
   client.stop();
-  (void)logger.info(F("Client disconnected."));
+  (void)logger.infoLine(F("Client disconnected."));
 }
